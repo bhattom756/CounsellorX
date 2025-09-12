@@ -1,9 +1,9 @@
-import React from 'react'
+'use-client'
 
-const page = () => {
+function page() {
   return (
     <div>
-      
+      Contact route
     </div>
   )
 }
