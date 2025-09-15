@@ -32,7 +32,7 @@ const Sdebar = () => {
 
   return (
     <div className="flex h-screen min-h-screen w-full">
-      <div className={`h-screen flex ${collapsed ? "bg-transparent" : ""}`}>
+      <div className={`h-screen flex  ${collapsed ? "bg-transparent" : ""}`}>
         <Sidebar
           collapsed={collapsed}
           collapsedWidth="0px"
@@ -101,10 +101,10 @@ const Sdebar = () => {
             <Image src={logo} width={23} height={23} alt="log-img" />
           </div>
         )}
-        <div className="flex items-center gap-2 rounded-3xl border border-white/30 backdrop-blur-[11px] relative overflow-hidden shadow-[0_8px_32px_rgba(0,0,0,0.1),_inset_0_1px_0_rgba(255,255,255,0.5),_inset_0_-1px_0_rgba(255,255,255,0.1),_inset_0_0_20px_10px_rgba(255,255,255,1)]">
+        <div className="main-container flex items-center gap-2 rounded-3xl border border-white/30 backdrop-blur-[11px] relative overflow-hidden shadow-[0_8px_32px_rgba(0,0,0,0.1),_inset_0_1px_0_rgba(255,255,255,0.5),_inset_0_-1px_0_rgba(255,255,255,0.1),_inset_0_0_20px_10px_rgba(255,255,255,1)]">
           <Button
             variant="ghost"
-            className="inline-flex items-center justify-center w-9 h-9 rounded-full bg-transparent transition-colors duration-150 hover:bg-blue-600/15 active:scale-95"
+            className="inline-flex items-center justify-center w-9 h-9 rounded-full bg-transparent transition-colors duration-150 hover:bg-blue-100 active:scale-95"
             onClick={() => setCollapsed(!collapsed)}
           >
             {collapsed ? (
@@ -119,7 +119,7 @@ const Sdebar = () => {
                 <TooltipTrigger asChild>
                   <Button
                     variant="ghost"
-                    className="inline-flex items-center justify-center w-9 h-9 rounded-full bg-transparent transition-colors duration-150 hover:bg-blue-600/15 active:scale-95"
+                    className="inline-flex items-center justify-center w-9 h-9 rounded-full bg-transparent transition-colors duration-150 hover:bg-blue-100 active:scale-95"
                     aria-label="New chat"
                   >
                     <CircleFadingPlus size={18} />

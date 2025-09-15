@@ -14,35 +14,3 @@
   position: relative;
   overflow: hidden;
 }
-
-/* Glow highlight line on top */
-.glass-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255, 255, 255, 0.7),
-    transparent
-  );
-}
-
-/* Soft left edge glow */
-.glass-card::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 2px;
-  height: 100%;
-  background: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.6),
-    transparent,
-    rgba(255, 255, 255, 0.3)
-  );
-}
