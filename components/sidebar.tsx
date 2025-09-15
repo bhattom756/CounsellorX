@@ -31,43 +31,14 @@ const Sdebar = () => {
   const [collapsed, setCollapsed] = React.useState(true);
 
   return (
-    <div
-      style={{
-        display: "flex",
-        height: "100vh",
-        minHeight: "100vh",
-        width: "100%",
-      }}
-    >
-      <div
-        className={collapsed ? "" : "glass-sidebar"}
-        style={{
-          height: "100vh",
-          display: "flex",
-          background: collapsed ? "transparent" : undefined,
-          backgroundColor: collapsed ? "transparent" : undefined,
-          border: collapsed ? "none" : undefined,
-        }}
-      >
+    <div className="flex h-screen min-h-screen w-full">
+      <div className={`h-screen flex ${collapsed ? "bg-transparent" : ""}`}>
         <Sidebar
           collapsed={collapsed}
           collapsedWidth="0px"
           width="240px"
-          rootStyles={{
-            height: "100%",
-            background: "transparent",
-            backgroundColor: "transparent",
-          }}
-          style={{
-            height: "100%",
-            background: "transparent",
-            backgroundColor: "transparent",
-            border: "none",
-          }}
         >
-          <div
-            style={{ display: "flex", flexDirection: "column", height: "100%" }}
-          >
+          <div className="flex flex-col h-full">
             <div className="flex justify-center p-3 pt-3 gap-3">
               <Image src={logo} width={25} height={23} alt="log-img" />
               {!collapsed && (
@@ -100,7 +71,7 @@ const Sdebar = () => {
                 </>
               )}
             </Menu>
-            <div style={{ marginTop: "auto", padding: "12px" }}>
+            <div className="mt-auto p-3">
               <DropdownMenu >
                 <DropdownMenuTrigger className="w-full bg-white p-2 border-1 border-white
                  rounded-3xl">
@@ -126,15 +97,14 @@ const Sdebar = () => {
       </div>
       <main className="flex-1 p-2 flex items-start gap-2 ">
         {collapsed && (
-          <div className="p-[7px] glass-button rounded-3xl">
+          <div className="p-[7px] rounded-3xl border border-white/30 backdrop-blur-[11px] relative overflow-hidden shadow-[0_8px_32px_rgba(0,0,0,0.1),_inset_0_1px_0_rgba(255,255,255,0.5),_inset_0_-1px_0_rgba(255,255,255,0.1),_inset_0_0_20px_10px_rgba(255,255,255,1)]">
             <Image src={logo} width={23} height={23} alt="log-img" />
           </div>
         )}
-        <div className="flex items-center gap-2 rounded-3xl glass-button">
+        <div className="flex items-center gap-2 rounded-3xl border border-white/30 backdrop-blur-[11px] relative overflow-hidden shadow-[0_8px_32px_rgba(0,0,0,0.1),_inset_0_1px_0_rgba(255,255,255,0.5),_inset_0_-1px_0_rgba(255,255,255,0.1),_inset_0_0_20px_10px_rgba(255,255,255,1)]">
           <Button
             variant="ghost"
-            style={{ border: "none", boxShadow: "none", padding: 0 }}
-            className="icon-btn"
+            className="inline-flex items-center justify-center w-9 h-9 rounded-full bg-transparent transition-colors duration-150 hover:bg-blue-600/15 active:scale-95"
             onClick={() => setCollapsed(!collapsed)}
           >
             {collapsed ? (
@@ -149,8 +119,7 @@ const Sdebar = () => {
                 <TooltipTrigger asChild>
                   <Button
                     variant="ghost"
-                    style={{ border: "none", boxShadow: "none", padding: 0 }}
-                    className="icon-btn"
+                    className="inline-flex items-center justify-center w-9 h-9 rounded-full bg-transparent transition-colors duration-150 hover:bg-blue-600/15 active:scale-95"
                     aria-label="New chat"
                   >
                     <CircleFadingPlus size={18} />

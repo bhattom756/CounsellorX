@@ -1,60 +1,48 @@
 @import "tailwindcss";
 
-html, body {
-  height: 100%;
-}
 
-body {
-  background: linear-gradient(rgba(0,0,0,0.08), rgba(0,0,0,0.08)), url('/bg.jpg') center / cover fixed no-repeat;
-  background-color: #e6eef7;
-}
-
-
-.icon-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  border-radius: 9999px;
-  background: transparent;
-  border: none;
-  outline: none;
+.main-container {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.1);
   position: relative;
-  transition: background-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+  overflow: hidden;
 }
 
-.icon-btn:hover {
-  background: rgba(0, 34, 255, 0.16);
-  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.55);
-}
-
-.icon-btn:active {
-  transform: scale(0.96);
-}
-
-.icon-btn::after {
-  content: "";
+/* Glow highlight line on top */
+.glass-card::before {
+  content: '';
   position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background: radial-gradient(circle at center, rgba(255,255,255,0.28), rgba(255,255,255,0) 70%);
-  opacity: 0;
-  transition: opacity 160ms ease;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.7),
+    transparent
+  );
 }
 
-.icon-btn:hover::after { opacity: 1; }
-
-.glass-button{
-    /* background: rgba(66, 56, 56, 0.39) !important; */
-    backdrop-filter: blur(11px) !important;
-    -webkit-backdrop-filter: blur(11px) !important;
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    box-shadow: 
-      0 8px 32px rgba(0, 0, 0, 0.1),
-      inset 0 1px 0 rgba(255, 255, 255, 0.5),
-      inset 0 -1px 0 rgba(255, 255, 255, 0.1),
-      inset 0 0 20px 10px rgba(255, 255, 255, 1);
-    position: relative;
-    overflow: hidden;
-  }
+/* Soft left edge glow */
+.glass-card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 2px;
+  height: 100%;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.6),
+    transparent,
+    rgba(255, 255, 255, 0.3)
+  );
+}

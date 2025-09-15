@@ -1,21 +1,12 @@
 'use client'
-
 import  Sidebar  from "@/components/sidebar";
+import InputBar from "@/components/inputbar";
 
 const page = () => {
   return (
-    <div
-      style={{
-        display: 'grid',
-        gridTemplateColumns: 'auto 1fr',
-        minHeight: '100vh',
-        width: '100%'
-      }}
-    >
+    <div className="grid grid-cols-[auto_1fr] min-h-screen w-full">
       <Sidebar />
-      <main style={{ display: 'grid', placeItems: 'center' }}>
-        <div style={{ textAlign: 'center' }}>center content</div>
-      </main>
+      <InputBar/>
     </div>
   );
 };
