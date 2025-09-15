@@ -1,4 +1,11 @@
 @import "tailwindcss";
-@import "tw-animate-css";
 
-/* don't write in router page css here */
+html, body {
+  height: 100%;
+}
+
+body {
+ 
+  background: linear-gradient(rgba(0,0,0,0.08), rgba(0,0,0,0.08)), url('/bg.jpg') center / cover fixed no-repeat;
+  background-color: #e6eef7;
+}
