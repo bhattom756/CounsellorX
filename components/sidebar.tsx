@@ -2,12 +2,7 @@
 import * as React from "react";
 import { Sidebar, Menu, MenuItem } from "react-pro-sidebar";
 import { Button } from "./ui/button";
-import {
-  ArrowLeftToLine,
-  ArrowRightToLine,
-  CircleFadingPlus,
-  Ellipsis,
-} from "lucide-react";
+import { PanelLeft, CircleFadingPlus, Ellipsis } from "lucide-react";
 import Image from "next/image";
 import logo from "public/logo.png";
 import {
@@ -102,17 +97,27 @@ const Sdebar = () => {
           </div>
         )}
         <div className="main-container flex items-center gap-2 rounded-3xl border border-white/30 backdrop-blur-[11px] relative overflow-hidden shadow-[0_8px_32px_rgba(0,0,0,0.1),_inset_0_1px_0_rgba(255,255,255,0.5),_inset_0_-1px_0_rgba(255,255,255,0.1),_inset_0_0_20px_10px_rgba(255,255,255,1)]">
-          <Button
-            variant="ghost"
-            className="inline-flex items-center justify-center w-9 h-9 rounded-full bg-transparent transition-colors duration-150 hover:bg-blue-100 active:scale-95"
-            onClick={() => setCollapsed(!collapsed)}
-          >
-            {collapsed ? (
-              <ArrowRightToLine size={18} />
-            ) : (
-              <ArrowLeftToLine size={18} />
-            )}
-          </Button>
+          <TooltipProvider delayDuration={100}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  className="inline-flex items-center justify-center w-9 h-9 rounded-full bg-transparent transition-colors duration-150 hover:bg-blue-100 active:scale-95"
+                  aria-label={collapsed ? "Open sidebar" : "Close sidebar"}
+                  onClick={() => setCollapsed(!collapsed)}
+                >
+                  <PanelLeft size={18} />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent
+                className="tooltip-no-arrow border border-white/10 rounded-full bg-gray-700 text-white px-3 py-1 text-[10px] mt-1 shadow-lg"
+                side="bottom"
+                align="center"
+              >
+                {collapsed ? "Open sidebar" : "Close sidebar"}
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
           {collapsed && (
             <TooltipProvider delayDuration={100}>
               <Tooltip>
@@ -126,7 +131,7 @@ const Sdebar = () => {
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent
-                  className="border-0"
+                  className="tooltip-no-arrow border border-white/10 rounded-full bg-gray-700 text-white px-3 py-1 text-[10px] mt-1 shadow-lg"
                   side="bottom"
                   align="center"
                 >
