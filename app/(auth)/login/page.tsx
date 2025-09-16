@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 // import google from "@/public/google.png";
+import googleImg from "./google.jpg";
 import toast, { Toaster } from 'react-hot-toast';
 import { ScaleLoader } from "react-spinners";
 import { GoogleAuthProvider } from "firebase/auth";
@@ -204,20 +205,21 @@ export default function LoginPage() {
 
   return (
     <>
-      <div className="min-h-screen flex flex-col items-center bg-black text-white px-4 py-12">
-        <div className="flex items-center justify-center gap-x-4">
+      <div className="min-h-screen flex flex-col items-center px-4 py-12 bg-cover bg-center relative text-gray-900" style={{ backgroundImage: "url('/bg.jpg')" }}>
+        <div className="main-container absolute inset-0 bg-white/30 backdrop-blur-sm"></div>
+        <div className="flex items-center justify-center gap-x-4 relative z-10">
         <div className="size-12 text-[#135feb]">
           <svg fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
             <path d="M42.4379 44C42.4379 44 36.0744 33.9038 41.1692 24C46.8624 12.9336 42.2078 4 42.2078 4L7.01134 4C7.01134 4 11.6577 12.932 5.96912 23.9969C0.876273 33.9029 7.27094 44 7.27094 44L42.4379 44Z" fill="currentColor"></path>
           </svg>
         </div>
-          <h1 className="font-semibold text-5xl">CouncellorX</h1>
+          <h1 className="font-semibold text-5xl text-gray-900">CouncellorX</h1>
         </div>
         
         {/* Login Form */}
         <form
           onSubmit={handleLogin}
-          className="bg-[#1a1a1a] p-12 my-8 rounded-xl w-[30rem] space-y-4 shadow-lg"
+          className="main-container p-12 my-8 rounded-xl w-[30rem] space-y-4 shadow-xl relative z-10 bg-white/60 backdrop-blur-md border border-white/50"
         >
           <label className="text-sm font-medium">Username or Email</label>
           <input
@@ -226,7 +228,7 @@ export default function LoginPage() {
             id="identifier"
             autoComplete="username"
             placeholder="Your username or email"
-            className="w-full px-4 py-3 text-white bg-[#222630] rounded-lg border-2 border-solid border-[#2B3040] outline-none focus:border-[#596A95] transition-colors duration-200"
+            className="w-full px-4 py-3 text-gray-900 bg-white/70 rounded-lg border border-gray-200 outline-none focus:border-blue-400 focus:bg-white transition-colors duration-200"
             value={identifier}
             onChange={(e) => setIdentifier(e.target.value)}
           />
@@ -238,19 +240,19 @@ export default function LoginPage() {
             id="password"
             autoComplete="current-password"
             placeholder="Your password"
-            className="w-full px-4 py-3 text-white bg-[#222630] rounded-lg border-2 border-solid border-[#2B3040] outline-none focus:border-[#596A95] transition-colors duration-200"
+            className="w-full px-4 py-3 text-gray-900 bg-white/70 rounded-lg border border-gray-200 outline-none focus:border-blue-400 focus:bg-white transition-colors duration-200"
             value={pwd}
             onChange={(e) => setPwd(e.target.value)}
           />
 
           <button
             type="submit"
-            className="w-full bg-white text-black py-2 rounded-md font-semibold hover:bg-gray-200 transition-colors flex items-center justify-center min-h-[40px]"
+            className="w-full bg-blue-600 text-white py-2 rounded-md font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center min-h-[40px]"
             disabled={isLoading || isGoogleLoading}
           >
             {isLoading ? (
               <ScaleLoader
-                color="#000000"
+                color="#ffffff"
                 loading={isLoading}
                 height={10}
                 width={10}
@@ -262,10 +264,10 @@ export default function LoginPage() {
           </button>
 
           {/* OR Divider */}
-          <div className="flex items-center justify-center gap-2 text-sm text-gray-400">
-            <hr className="flex-grow border-gray-600" />
+          <div className="flex items-center justify-center gap-2 text-sm text-gray-600">
+            <hr className="flex-grow border-gray-200" />
             <span>OR</span>
-            <hr className="flex-grow border-gray-600" />
+            <hr className="flex-grow border-gray-200" />
           </div>
 
           {/* Google Login Button */}
@@ -273,11 +275,11 @@ export default function LoginPage() {
             type="button"
             onClick={handleGoogleLogin}
             disabled={isGoogleLoading}
-            className="flex items-center justify-center gap-2 w-full py-3 px-4 bg-[#2B3040] hover:bg-[#343b52] transition-colors duration-200 rounded-lg border border-solid border-[#374151]"
+            className="flex items-center justify-center gap-2 w-full py-3 px-4 bg-white/80 hover:bg-white transition-colors duration-200 rounded-lg border border-solid border-gray-300"
           >
             {isGoogleLoading ? (
               <ScaleLoader
-                color="#ffffff"
+                color="#4b5563"
                 loading={true}
                 cssOverride={spinnerOverride}
                 height={15}
@@ -287,28 +289,28 @@ export default function LoginPage() {
               />
             ) : (
               <>
-                <Image alt="Google" src="/google.png" width={20} height={20} />
+                <Image alt="Google" src={googleImg} width={20} height={20} />
                 <span>Continue with Google</span>
               </>
             )}
           </button>
 
           {/* Sign-up Link */}
-          <div className="text-center text-sm text-gray-400 mt-2">
-            Don't have an account?{" "}
+          <div className="text-center text-sm text-gray-700 mt-2">
+            Don&apos;t have an account?{" "}
             <Link
               href="/signup"
-              className="text-purple-400 hover:text-blue-300"
+              className="text-blue-600 hover:text-blue-700"
             >
               Sign up
             </Link>
           </div>
 
-          <div className="text-center text-sm text-gray-400 mt-2">
+          <div className="text-center text-sm text-gray-700 mt-2">
             Forget your password?{" "}
             <button
               onClick={handleResetPassword}
-              className="text-purple-400 hover:text-blue-300"
+              className="text-blue-600 hover:text-blue-700"
               disabled={isResetLoading}
             >
               {isResetLoading ? "Sending..." : "Reset password"}

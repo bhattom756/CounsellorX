@@ -21,9 +21,39 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { RxAvatar } from "react-icons/rx";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useUser } from "@/context/UserContext";
+import { LogOut, HelpCircle, Settings as SettingsIcon, Wand2, Sparkles, ChevronRight, Bell, Plug, Database, Shield, User as UserIcon, ChevronDown, Play } from "lucide-react";
+import { DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger } from "@/components/ui/dropdown-menu";
 
 const Sdebar = () => {
   const [collapsed, setCollapsed] = React.useState(true);
+  const [accountOpen, setAccountOpen] = React.useState(false);
+  const [activeAccountTab, setActiveAccountTab] = React.useState<"profile" | "password" | "billing" | "team" | "subscription" | "settings">("profile");
+  const { user, logout } = useUser();
+  const [theme, setTheme] = React.useState<"light" | "dark">("light");
+  const [language, setLanguage] = React.useState<string>("English");
+
+  React.useEffect(() => {
+    // initialize from storage
+    const savedTheme = (typeof window !== 'undefined' && (localStorage.getItem("theme") as "light" | "dark" | null)) || null;
+    if (savedTheme) {
+      setTheme(savedTheme);
+      document.documentElement.classList.toggle("dark", savedTheme === "dark");
+    }
+    const savedLang = typeof window !== 'undefined' && localStorage.getItem("language");
+    if (savedLang) setLanguage(savedLang);
+  }, []);
+
+  const applyTheme = (next: "light" | "dark") => {
+    setTheme(next);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem("theme", next);
+      document.documentElement.classList.toggle("dark", next === "dark");
+    }
+  };
 
   return (
     <div className="flex h-screen min-h-screen w-full">
@@ -77,13 +107,36 @@ const Sdebar = () => {
                     <Ellipsis size={23} />
                   </div>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-57 text-gray-800 ">
-                   <DropdownMenuLabel><p className="font-semibold">My Account</p></DropdownMenuLabel>
+                <DropdownMenuContent className="w-[260px] p-2 rounded-xl border border-black/10 bg-white/60 backdrop-blur-md shadow-xl text-gray-800">
+                  <DropdownMenuLabel>
+                    <div className="flex items-center gap-2 text-gray-900">
+                      <RxAvatar size={18} />
+                      <span className="truncate text-sm">{user?.email || "Guest"}</span>
+                    </div>
+                  </DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem>Profile</DropdownMenuItem>
-                  <DropdownMenuItem>Billing</DropdownMenuItem>
-                  <DropdownMenuItem>Team</DropdownMenuItem>
-                  <DropdownMenuItem>Subscription</DropdownMenuItem>
+                  <DropdownMenuItem className="rounded-lg px-3 py-2 hover:bg-black/5 transition-colors">
+                    <Sparkles className="size-4" /> Upgrade plan
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="rounded-lg px-3 py-2 hover:bg-black/5 transition-colors">
+                    <Wand2 className="size-4" /> Personalization
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="rounded-lg px-3 py-2 hover:bg-black/5 transition-colors" onClick={() => { setActiveAccountTab("settings"); setAccountOpen(true); }}>
+                    <SettingsIcon className="size-4" /> Settings
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuSub>
+                    <DropdownMenuSubTrigger className="rounded-lg px-3 py-2">
+                      <HelpCircle className="size-4" /> Help
+                    </DropdownMenuSubTrigger>
+                    <DropdownMenuSubContent className="w-48">
+                      <DropdownMenuItem>Documentation</DropdownMenuItem>
+                      <DropdownMenuItem>Contact support</DropdownMenuItem>
+                    </DropdownMenuSubContent>
+                  </DropdownMenuSub>
+                  <DropdownMenuItem className="rounded-lg px-3 py-2 hover:bg-black/5 transition-colors" onClick={() => logout()}>
+                    <LogOut className="size-4" /> Log out
+                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
@@ -142,6 +195,140 @@ const Sdebar = () => {
           )}
         </div>
       </main>
+
+      {/* Account Dialog with Tabs */}
+      <Dialog open={accountOpen} onOpenChange={setAccountOpen}>
+        <DialogContent className="sm:max-w-xl bg-white/50 backdrop-blur-lg border border-white/30 shadow-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-lg">My Account</DialogTitle>
+          </DialogHeader>
+          <Tabs value={activeAccountTab} onValueChange={(v:any) => setActiveAccountTab(v)} className="w-full">
+            {/* TabsList intentionally hidden in modal to show only selected content */}
+            <TabsContent value="settings" className="mt-1">
+              <div className="rounded-xl border border-white/20 bg-neutral-900/95 text-white overflow-hidden">
+                <div className="flex">
+                  {/* Left nav */}
+                  <div className="w-56 bg-neutral-900/80 border-r border-white/10 p-2 space-y-1">
+                    <button className="w-full flex items-center gap-2 px-3 py-2 rounded-md bg-white/10 text-white">
+                      <SettingsIcon className="size-4" /> <span className="text-sm">General</span>
+                    </button>
+                    <button className="w-full flex items-center gap-2 px-3 py-2 rounded-md hover:bg-white/5">
+                      <Bell className="size-4 text-gray-300" /> <span className="text-sm text-gray-200">Notifications</span>
+                    </button>
+                    <button className="w-full flex items-center gap-2 px-3 py-2 rounded-md hover:bg-white/5">
+                      <Wand2 className="size-4 text-gray-300" /> <span className="text-sm text-gray-200">Personalization</span>
+                    </button>
+                    <button className="w-full flex items-center gap-2 px-3 py-2 rounded-md hover:bg-white/5">
+                      <Plug className="size-4 text-gray-300" /> <span className="text-sm text-gray-200">Connected apps</span>
+                    </button>
+                    <button className="w-full flex items-center gap-2 px-3 py-2 rounded-md hover:bg-white/5">
+                      <Database className="size-4 text-gray-300" /> <span className="text-sm text-gray-200">Data controls</span>
+                    </button>
+                    <button className="w-full flex items-center gap-2 px-3 py-2 rounded-md hover:bg-white/5">
+                      <Shield className="size-4 text-gray-300" /> <span className="text-sm text-gray-200">Security</span>
+                    </button>
+                    <button className="w-full flex items-center gap-2 px-3 py-2 rounded-md hover:bg-white/5">
+                      <UserIcon className="size-4 text-gray-300" /> <span className="text-sm text-gray-200">Account</span>
+                    </button>
+                  </div>
+                  {/* Right content */}
+                  <div className="flex-1 p-5 ">
+                    <h2 className="text-xl font-semibold">General</h2>
+                    <div className="mt-3 border-t border-white/10" />
+
+                    <div className="divide-y divide-white/10 mt-2">
+                      {/* Theme */}
+                      <div className="py-4 flex items-center justify-between">
+                        <div className="text-sm text-gray-300">Theme</div>
+                        <div className="inline-flex items-center gap-2 bg-white/5 rounded-md p-1">
+                          <button
+                            className={`px-3 py-1 rounded-sm text-sm ${theme === 'light' ? 'bg-white text-black' : 'text-gray-200 hover:bg-white/10'}`}
+                            onClick={() => applyTheme('light')}
+                          >
+                            Light
+                          </button>
+                          <button
+                            className={`px-3 py-1 rounded-sm text-sm ${theme === 'dark' ? 'bg-white text-black' : 'text-gray-200 hover:bg-white/10'}`}
+                            onClick={() => applyTheme('dark')}
+                          >
+                            Dark
+                          </button>
+                        </div>
+                      </div>
+                      {/* Accent color (static placeholder) */}
+                      <div className="py-4 flex items-center justify-between">
+                        <div className="text-sm text-gray-300">Accent color</div>
+                        <button className="inline-flex items-center gap-2 px-2 py-1 rounded-md hover:bg-white/5 text-sm text-gray-200">
+                          • Default <ChevronDown className="size-4" />
+                        </button>
+                      </div>
+                      {/* Language */}
+                      <div className="py-4 flex items-center justify-between">
+                        <div className="text-sm text-gray-300">Language</div>
+                        <div className="inline-flex items-center gap-2">
+                          <select
+                            value={language}
+                            onChange={(e) => { setLanguage(e.target.value); if (typeof window !== 'undefined') localStorage.setItem('language', e.target.value); }}
+                            className="bg-transparent border border-white/10 rounded-md px-2 py-1 text-sm text-gray-200 hover:bg-white/5"
+                          >
+                            <option className="text-black" value="English">English</option>
+                            <option className="text-black" value="Hindi">Hindi</option>
+                            <option className="text-black" value="Spanish">Spanish</option>
+                          </select>
+                        </div>
+                      </div>
+                      {/* Removed Spoken language and Voice per request */}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </TabsContent>
+            <TabsContent value="profile" className="mt-1">
+              <div className="rounded-xl border border-white/40 bg-white/60 backdrop-blur-md p-5 text-gray-900 space-y-4">
+                <div>
+                  <h3 className="text-lg font-semibold">Account</h3>
+                  <p className="text-sm text-gray-700 mt-1">Make changes to your account here. Click save when you're done.</p>
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="account-name" className="text-sm">Name</Label>
+                  <Input id="account-name" placeholder="Pedro Duarte" defaultValue="Pedro Duarte" className="h-10 bg-white/80 border-gray-200 text-gray-900 placeholder:text-gray-500" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="account-username" className="text-sm">Username</Label>
+                  <Input id="account-username" placeholder="@peduarte" defaultValue="@peduarte" className="h-10 bg-white/80 border-gray-200 text-gray-900 placeholder:text-gray-500" />
+                </div>
+                <Button className="bg-blue-600 text-white hover:bg-blue-700">Save changes</Button>
+              </div>
+            </TabsContent>
+            <TabsContent value="billing" className="mt-1">
+              <div className="rounded-xl border border-white/40 bg-white/60 backdrop-blur-md p-4 text-sm text-gray-800">Billing details go here.</div>
+            </TabsContent>
+            <TabsContent value="password" className="mt-1">
+              <div className="rounded-xl border border-white/40 bg-white/60 backdrop-blur-md p-5 text-gray-900 space-y-4">
+                <div>
+                  <h3 className="text-lg font-semibold">Password</h3>
+                  <p className="text-sm text-gray-700 mt-1">Change your password here. After saving, you\'ll be logged out.</p>
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="current-password" className="text-sm">Current password</Label>
+                  <Input id="current-password" type="password" placeholder="Current password" className="h-10 bg-white/80 border-gray-200 text-gray-900 placeholder:text-gray-500" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="new-password" className="text-sm">New password</Label>
+                  <Input id="new-password" type="password" placeholder="New password" className="h-10 bg-white/80 border-gray-200 text-gray-900 placeholder:text-gray-500" />
+                </div>
+                <Button className="bg-blue-600 text-white hover:bg-blue-700">Save password</Button>
+              </div>
+            </TabsContent>
+            <TabsContent value="team" className="mt-1">
+              <div className="rounded-xl border border-white/40 bg-white/60 backdrop-blur-md p-4 text-sm text-gray-800">Team management goes here.</div>
+            </TabsContent>
+            <TabsContent value="subscription" className="mt-1">
+              <div className="rounded-xl border border-white/40 bg-white/60 backdrop-blur-md p-4 text-sm text-gray-800">Subscription plan info goes here.</div>
+            </TabsContent>
+          </Tabs>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

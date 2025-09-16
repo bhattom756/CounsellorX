@@ -28,6 +28,7 @@ import {
   serverTimestamp
 } from "firebase/firestore";
 import { getAnalytics, isSupported } from "firebase/analytics";
+import { getStorage, ref as storageRef, uploadBytes, getDownloadURL, uploadBytesResumable } from "firebase/storage";
 
 
 const firebaseConfig = {
@@ -43,6 +44,7 @@ const firebaseConfig = {
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 const auth = getAuth(app);
 const db = getFirestore(app);
+const storage = getStorage(app);
 
 if (typeof window !== 'undefined') {
   setPersistence(auth, browserLocalPersistence)
@@ -503,6 +505,7 @@ export {
   auth,
   app,
   db,
+  storage,
   googleProvider,
   registerWithEmailAndUsername,
   loginWithEmail,
@@ -529,4 +532,50 @@ export {
 };
 
 export type { User };
+ 
+// File uploads to Firebase Storage
+export const uploadFileToStorage = async (
+  file: File,
+  folder: string = "uploads"
+): Promise<{ url: string; path: string }> => {
+  const uid = auth.currentUser?.uid || "anonymous";
+  const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+  const path = `${folder}/${uid}/${Date.now()}_${safeName}`;
+  const ref = storageRef(storage, path);
+  await uploadBytes(ref, file);
+  const url = await getDownloadURL(ref);
+  return { url, path };
+};
+
+// Upload with progress callback (0-100)
+export const uploadFileWithProgress = (
+  file: File,
+  folder: string = "uploads",
+  onProgress?: (percent: number) => void
+): Promise<{ url: string; path: string }> => {
+  return new Promise((resolve, reject) => {
+    const uid = auth.currentUser?.uid || "anonymous";
+    const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+    const path = `${folder}/${uid}/${Date.now()}_${safeName}`;
+    const ref = storageRef(storage, path);
+    const task = uploadBytesResumable(ref, file);
+
+    task.on(
+      "state_changed",
+      (snapshot) => {
+        const percent = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
+        if (onProgress) onProgress(percent);
+      },
+      (error) => reject(error),
+      async () => {
+        try {
+          const url = await getDownloadURL(task.snapshot.ref);
+          resolve({ url, path });
+        } catch (err) {
+          reject(err);
+        }
+      }
+    );
+  });
+};
  
