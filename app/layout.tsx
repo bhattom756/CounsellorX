@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Montserrat } from "next/font/google";
 import "./globals.css";
+import { UserProvider } from "@/context/UserContext";
+import AuthDialogGate from "@/components/AuthDialogGate";
 
 const montserrat = Montserrat({
   subsets: ["latin"],
@@ -22,9 +24,12 @@ export default function RootLayout({
       <body className={`${montserrat.className} antialiased min-h-screen bg-[#e6eef7] relative`}>
         <div className="fixed inset-0 -z-10 bg-[url('/bg.jpg')] bg-center bg-cover bg-fixed" />
         <div className="fixed inset-0 -z-10 bg-black/10" />
-        <div className="relative">
-          {children}
-        </div>
+        <UserProvider>
+          <AuthDialogGate />
+          <div className="relative">
+            {children}
+          </div>
+        </UserProvider>
       </body>
     </html>
   );

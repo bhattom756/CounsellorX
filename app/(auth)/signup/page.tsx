@@ -73,7 +73,7 @@ export default function SignupPage() {
     try {
       await registerWithEmailAndUsername(email, pwd, username);
       toast.success("Account created successfully!");
-      router.push("/"); // Redirect to home after signup
+      router.push("/login"); // Redirect to login after signup
     } catch (err: any) {
       let errorMessage = "Failed to create account. Please try again.";
 
@@ -158,7 +158,7 @@ export default function SignupPage() {
             <path d="M42.4379 44C42.4379 44 36.0744 33.9038 41.1692 24C46.8624 12.9336 42.2078 4 42.2078 4L7.01134 4C7.01134 4 11.6577 12.932 5.96912 23.9969C0.876273 33.9029 7.27094 44 7.27094 44L42.4379 44Z" fill="currentColor"></path>
           </svg>
         </div>
-          <h1 className="font-semibold text-5xl">LakeNine.Ai</h1>
+          <h1 className="font-semibold text-5xl">CouncellorX</h1>
         </div>
         <form
           onSubmit={handleSignup}
@@ -274,7 +274,7 @@ export default function SignupPage() {
               />
             ) : (
               <>
-                <Image src={google} height={20} width={20} alt="google-signup" />
+                <Image src="/google.png" height={20} width={20} alt="google-signup" />
                 <span>Continue with Google</span>
               </>
             )}

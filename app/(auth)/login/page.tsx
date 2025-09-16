@@ -6,7 +6,7 @@ import { useUser } from "@/context/UserContext";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import google from "@/public/google.png";
+// import google from "@/public/google.png";
 import toast, { Toaster } from 'react-hot-toast';
 import { ScaleLoader } from "react-spinners";
 import { GoogleAuthProvider } from "firebase/auth";
@@ -29,7 +29,7 @@ export default function LoginPage() {
   useEffect(() => {
     if (user) {
       console.log("Login page: User is authenticated, redirecting...");
-      const redirectPath = localStorage.getItem('authRedirectPath') || '/studio';
+      const redirectPath = localStorage.getItem('authRedirectPath') || '/';
       localStorage.removeItem('authRedirectPath');
       console.log("Login page: Redirecting to:", redirectPath);
       router.push(redirectPath);
@@ -58,8 +58,8 @@ export default function LoginPage() {
       await loginWithEmail(email, pwd);
       toast.success("Logged in successfully!");
       
-      // Check for redirect path or default to studio
-      const redirectPath = localStorage.getItem('authRedirectPath') || '/studio';
+      // Check for redirect path or default to home
+      const redirectPath = localStorage.getItem('authRedirectPath') || '/';
       localStorage.removeItem('authRedirectPath');
       console.log("Login page: Login successful, redirecting to:", redirectPath);
       router.push(redirectPath);
@@ -90,12 +90,12 @@ export default function LoginPage() {
     try {
       const provider = new GoogleAuthProvider();
       provider.setCustomParameters({display: 'popup'})
-      const result = await signInWithGoogle(provider);
+      const result = await signInWithGoogle();
       if (result?.user) {
         toast.success("Signed in with Google successfully!");
         
-        // Check for redirect path or default to studio
-        const redirectPath = localStorage.getItem('authRedirectPath') || '/studio';
+        // Check for redirect path or default to home
+        const redirectPath = localStorage.getItem('authRedirectPath') || '/';
         localStorage.removeItem('authRedirectPath');
         console.log("Login page: Google login successful, redirecting to:", redirectPath);
         router.push(redirectPath);
@@ -211,7 +211,7 @@ export default function LoginPage() {
             <path d="M42.4379 44C42.4379 44 36.0744 33.9038 41.1692 24C46.8624 12.9336 42.2078 4 42.2078 4L7.01134 4C7.01134 4 11.6577 12.932 5.96912 23.9969C0.876273 33.9029 7.27094 44 7.27094 44L42.4379 44Z" fill="currentColor"></path>
           </svg>
         </div>
-          <h1 className="font-semibold text-5xl">LakeNine.Ai</h1>
+          <h1 className="font-semibold text-5xl">CouncellorX</h1>
         </div>
         
         {/* Login Form */}
@@ -287,7 +287,7 @@ export default function LoginPage() {
               />
             ) : (
               <>
-                <Image alt="Google" src={google} width={20} height={20} />
+                <Image alt="Google" src="/google.png" width={20} height={20} />
                 <span>Continue with Google</span>
               </>
             )}
