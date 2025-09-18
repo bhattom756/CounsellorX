@@ -102,7 +102,7 @@ const Sdebar = () => {
                  rounded-3xl">
                   <div className="flex items-center justify-between w-full gap-3">
                     <div className="flex items-center gap-2 font-semibold px-1">
-                      <RxAvatar size={25} /> <span>My Account</span>
+                      <RxAvatar size={25} /> <span>{user?.displayName || user?.email || "Guest"}</span>
                     </div>
                     <Ellipsis size={23} />
                   </div>

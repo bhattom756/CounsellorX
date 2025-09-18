@@ -6,7 +6,9 @@ const page = () => {
   return (
     <div className="grid grid-cols-[auto_1fr] min-h-screen w-full">
       <Sidebar />
-      <InputBar/>
+      <div className="p-6">
+        <InputBar/>
+      </div>
     </div>
   );
 };

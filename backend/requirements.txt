@@ -1,0 +1,41 @@
+# LangChain core
+langchain
+langchain-core
+
+# OpenAI Integration
+langchain-openai
+openai
+
+# Anthropic Integration
+langchain-anthropic
+
+# Google Gemini (PaLM) Integration
+langchain-google-genai
+google-generativeai
+
+# Hugging Face Integration
+langchain-huggingface
+huggingface-hub
+transformers
+
+# Environment Variable Management
+python-dotenv
+
+# Machine Learning Utilities
+numpy
+scikit-learn
+
+# Validation / Data Models
+pydantic
+typing-extensions
+
+# Networking and Serialization
+requests
+httpx
+protobuf
+tqdm
+
+# FastAPI Web API
+fastapi
+uvicorn[standard]
+python-multipart
