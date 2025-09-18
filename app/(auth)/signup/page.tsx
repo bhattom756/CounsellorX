@@ -3,7 +3,7 @@ import { useState, useEffect, CSSProperties } from "react";
 import { registerWithEmailAndUsername, signUpWithGoogle, verifyAuthConfig } from "@/lib/firebase";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import google from "@/public/google.png";
+import googleImg from "../login/google.jpg";
 import Image from "next/image";
 import toast, { Toaster } from 'react-hot-toast';
 import { ScaleLoader } from "react-spinners";
@@ -151,18 +151,19 @@ export default function SignupPage() {
 
   return (
     <>
-      <div className="min-h-screen flex flex-col items-center bg-black text-white px-4 py-12">
-        <div className="flex items-center justify-center gap-x-4">
+      <div className=" min-h-screen flex flex-col items-center px-4 py-12 bg-cover bg-center relative text-gray-900" style={{ backgroundImage: "url('/bg.jpg')" }}>
+        <div className="main-container absolute inset-0 bg-white/30 backdrop-blur-sm"></div>
+        <div className=" flex items-center justify-center gap-x-4 relative z-10">
         <div className="size-12 text-[#135feb]">
           <svg fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
             <path d="M42.4379 44C42.4379 44 36.0744 33.9038 41.1692 24C46.8624 12.9336 42.2078 4 42.2078 4L7.01134 4C7.01134 4 11.6577 12.932 5.96912 23.9969C0.876273 33.9029 7.27094 44 7.27094 44L42.4379 44Z" fill="currentColor"></path>
           </svg>
         </div>
-          <h1 className="font-semibold text-5xl">CouncellorX</h1>
+          <h1 className="font-semibold text-5xl text-gray-900">CouncellorX</h1>
         </div>
         <form
           onSubmit={handleSignup}
-          className="bg-[#1a1a1a] p-12 my-8 rounded-xl w-[30rem] space-y-4 shadow-lg"
+          className="main-container p-12 my-8 rounded-xl w-[30rem] space-y-4 shadow-xl relative z-10 bg-white/60 backdrop-blur-md border border-white/50"
         >
           {error && <p className="text-red-500 text-sm">{error}</p>}
 
@@ -173,7 +174,7 @@ export default function SignupPage() {
             id="username"
             autoComplete="username"
             placeholder="Choose a unique username"
-            className="w-full px-4 py-3 text-white bg-[#222630] rounded-lg border-2 border-solid border-[#2B3040] outline-none focus:border-[#596A95] transition-colors duration-200"
+            className="w-full px-4 py-3 text-gray-900 bg-white/70 rounded-lg border border-gray-200 outline-none focus:border-blue-400 focus:bg-white transition-colors duration-200"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
           />
@@ -185,7 +186,7 @@ export default function SignupPage() {
             id="email"
             autoComplete="email"
             placeholder="Your email address"
-            className="w-full px-4 py-3 text-white bg-[#222630] rounded-lg border-2 border-solid border-[#2B3040] outline-none focus:border-[#596A95] transition-colors duration-200"
+            className="w-full px-4 py-3 text-gray-900 bg-white/70 rounded-lg border border-gray-200 outline-none focus:border-blue-400 focus:bg-white transition-colors duration-200"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
@@ -197,7 +198,7 @@ export default function SignupPage() {
             id="password"
             autoComplete="new-password"
             placeholder="Choose a password"
-            className="w-full px-4 py-3 text-white bg-[#222630] rounded-lg border-2 border-solid border-[#2B3040] outline-none focus:border-[#596A95] transition-colors duration-200"
+            className="w-full px-4 py-3 text-gray-900 bg-white/70 rounded-lg border border-gray-200 outline-none focus:border-blue-400 focus:bg-white transition-colors duration-200"
             value={pwd}
             onChange={(e) => setPwd(e.target.value)}
           />
@@ -206,7 +207,7 @@ export default function SignupPage() {
           {pwd && (
             <div className="mt-1">
               <div className="flex items-center">
-                <div className="flex-1 h-2 bg-gray-700 rounded-full overflow-hidden">
+                <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
                   <div
                     className={`h-full transition-all duration-300 ${passwordStrength === "weak" ? "w-1/3 bg-red-500" :
                         passwordStrength === "medium" ? "w-2/3 bg-yellow-500" :
@@ -214,16 +215,16 @@ export default function SignupPage() {
                       }`}
                   ></div>
                 </div>
-                <span className={`ml-2 text-sm font-medium transition-all duration-300 ${passwordStrength === "weak" ? "text-red-500" :
-                    passwordStrength === "medium" ? "text-yellow-500" :
-                      passwordStrength === "strong" ? "text-green-500" : ""
+                <span className={`ml-2 text-sm font-medium transition-all duration-300 ${passwordStrength === "weak" ? "text-red-600" :
+                    passwordStrength === "medium" ? "text-yellow-600" :
+                      passwordStrength === "strong" ? "text-green-600" : ""
                   }`}>
                   {passwordStrength === "weak" ? "Weak" :
                     passwordStrength === "medium" ? "Medium" :
                       passwordStrength === "strong" ? "Strong" : ""}
                 </span>
               </div>
-              <p className="text-xs text-gray-400 mt-1">
+              <p className="text-xs text-gray-600 mt-1">
                 Password must be at least 8 characters with numbers, uppercase, lowercase, and special characters
               </p>
             </div>
@@ -231,12 +232,12 @@ export default function SignupPage() {
 
           <button
             type="submit"
-            className="w-full bg-white text-black py-2 rounded-md font-semibold hover:bg-gray-200 transition-colors flex items-center justify-center min-h-[40px]"
+            className="w-full bg-blue-600 text-white py-2 rounded-md font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center min-h-[40px]"
             disabled={isLoading || isGoogleLoading}
           >
             {isLoading ? (
               <ScaleLoader
-                color="#000000"
+                color="#ffffff"
                 loading={isLoading}
                 cssOverride={spinnerOverride}
                 height={10}
@@ -249,22 +250,22 @@ export default function SignupPage() {
           </button>
 
           {/* OR Divider */}
-          <div className="flex items-center justify-center gap-2 text-sm text-gray-400">
-            <hr className="flex-grow border-gray-600" />
+          <div className="flex items-center justify-center gap-2 text-sm text-gray-600">
+            <hr className="flex-grow border-gray-200" />
             <span>OR</span>
-            <hr className="flex-grow border-gray-600" />
+            <hr className="flex-grow border-gray-200" />
           </div>
 
           {/* Google Button */}
           <button
             type="button"
             onClick={handleGoogleLogin}
-            className="flex items-center justify-center gap-2 w-full py-3 px-4 bg-[#2B3040] hover:bg-[#343b52] transition-colors duration-200 rounded-lg border border-solid border-[#374151]"
+            className="flex items-center justify-center gap-2 w-full py-3 px-4 bg-white/80 hover:bg-white transition-colors duration-200 rounded-lg border border-solid border-gray-300"
             disabled={isLoading || isGoogleLoading}
           >
             {isGoogleLoading ? (
               <ScaleLoader
-                color="#ffffff"
+                color="#4b5563"
                 loading={true}
                 cssOverride={spinnerOverride}
                 height={15}
@@ -274,16 +275,16 @@ export default function SignupPage() {
               />
             ) : (
               <>
-                <Image src="/google.png" height={20} width={20} alt="google-signup" />
+                <Image src={googleImg} height={20} width={20} alt="google-signup" />
                 <span>Continue with Google</span>
               </>
             )}
           </button>
 
           {/* Login Redirect */}
-          <div className="text-center text-sm text-gray-400 mt-2">
+          <div className="text-center text-sm text-gray-700 mt-2">
             Already have an account?{" "}
-            <Link href="/login" className="text-purple-400 hover:text-blue-300">
+            <Link href="/login" className="text-blue-600 hover:text-blue-700">
               Log in
             </Link>
           </div>
