@@ -1,48 +1,41 @@
-const API_BASE_URL = 'https://generativelanguage.googleapis.com/v1beta';
+const API_BASE_URL = 'https://api.openai.com/v1';
 
-export interface GeminiMessage {
-  role: 'user' | 'model';
-  parts: { text: string }[];
+export interface OpenAIMessage {
+  role: 'user' | 'assistant' | 'system';
+  content: string;
 }
 
-export interface GeminiRequest {
-  contents: GeminiMessage[];
-  generationConfig?: {
-    temperature?: number;
-    topK?: number;
-    topP?: number;
-    maxOutputTokens?: number;
-    stopSequences?: string[];
-  };
-  safetySettings?: Array<{
-    category: string;
-    threshold: string;
-  }>;
+export interface OpenAIRequest {
+  model: string;
+  messages: OpenAIMessage[];
+  temperature?: number;
+  max_tokens?: number;
+  top_p?: number;
+  frequency_penalty?: number;
+  presence_penalty?: number;
 }
 
-export interface GeminiResponse {
-  candidates: Array<{
-    content: {
-      parts: Array<{
-        text: string;
-      }>;
+export interface OpenAIResponse {
+  id: string;
+  object: string;
+  created: number;
+  model: string;
+  choices: Array<{
+    index: number;
+    message: {
       role: string;
+      content: string;
     };
-    finishReason: string;
-    safetyRatings: Array<{
-      category: string;
-      probability: string;
-    }>;
+    finish_reason: string;
   }>;
-  promptFeedback?: {
-    safetyRatings: Array<{
-      category: string;
-      probability: string;
-    }>;
+  usage: {
+    prompt_tokens: number;
+    completion_tokens: number;
+    total_tokens: number;
   };
 }
 
-export class GeminiAPI {
+export class OpenAIClient {
   private apiKey: string;
   private baseUrl: string;
 
@@ -52,16 +45,17 @@ export class GeminiAPI {
   }
 
   async generateContent(
-    model: string = 'gemini-2.5-flash', // Default to Gemini 2.5 Flash
-    request: GeminiRequest
-  ): Promise<GeminiResponse> {
+    model: string = 'gpt-4o', // Default to GPT-4o for best reasoning
+    request: OpenAIRequest
+  ): Promise<OpenAIResponse> {
     try {
       const response = await fetch(
-        `${this.baseUrl}/models/${model}:generateContent?key=${this.apiKey}`,
+        `${this.baseUrl}/chat/completions`,
         {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
+            'Authorization': `Bearer ${this.apiKey}`,
           },
           body: JSON.stringify(request),
         }
@@ -70,142 +64,122 @@ export class GeminiAPI {
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(
-          `Gemini API error: ${response.status} ${response.statusText} - ${
+          `OpenAI API error: ${response.status} ${response.statusText} - ${
             errorData.error?.message || 'Unknown error'
           }`
         );
       }
 
-      const data: GeminiResponse = await response.json();
+      const data: OpenAIResponse = await response.json();
       return data;
     } catch (error) {
-      console.error('Error calling Gemini API:', error);
+      console.error('Error calling OpenAI API:', error);
       throw error;
     }
   }
 
   async generateText(
     prompt: string,
-    model: string = 'gemini-2.5-flash', // Default to Gemini 2.5 Flash
+    model: string = 'gpt-4o', // Default to GPT-4o for best reasoning
     options?: {
       temperature?: number;
       maxTokens?: number;
     }
   ): Promise<string> {
-    const request: GeminiRequest = {
-      contents: [
+    const request: OpenAIRequest = {
+      model: model,
+      messages: [
         {
           role: 'user',
-          parts: [{ text: prompt }],
+          content: prompt,
         },
       ],
-      generationConfig: {
-        temperature: options?.temperature ?? 0.7,
-        maxOutputTokens: options?.maxTokens ?? 2048,
-        topP: 0.8,
-        topK: 40,
-      },
+      temperature: options?.temperature ?? 0.7,
+      max_tokens: options?.maxTokens ?? 2048,
+      top_p: 0.9,
     };
 
     const response = await this.generateContent(model, request);
 
     // Debug logging
-    console.log('Gemini API Response:', JSON.stringify(response, null, 2));
+    console.log('OpenAI API Response:', JSON.stringify(response, null, 2));
 
     if (
-      !response.candidates ||
-      response.candidates.length === 0
+      !response.choices ||
+      response.choices.length === 0
     ) {
-      console.error('No candidates in response');
-      throw new Error('No response generated from Gemini API - no candidates');
+      console.error('No choices in response');
+      throw new Error('No response generated from OpenAI API - no choices');
     }
 
-    const candidate = response.candidates[0];
+    const choice = response.choices[0];
     
-    if (!candidate.content) {
-      console.error('No content in candidate');
-      throw new Error('No response generated from Gemini API - no content');
+    if (!choice.message) {
+      console.error('No message in choice');
+      throw new Error('No response generated from OpenAI API - no message');
     }
 
-    if (!candidate.content.parts || candidate.content.parts.length === 0) {
-      console.error('No parts in content');
-      console.error('Finish reason:', candidate.finishReason);
-      
-      // Handle MAX_TOKENS case where content exists but no parts
-      if (candidate.finishReason === 'MAX_TOKENS') {
-        throw new Error('Response was truncated due to token limit. Please try a shorter prompt or increase maxTokens.');
-      }
-      
-      throw new Error('No response generated from Gemini API - no parts');
-    }
-
-    const text = candidate.content.parts[0].text;
+    const text = choice.message.content;
     if (!text) {
-      console.error('No text in parts');
-      console.error('Finish reason:', candidate.finishReason);
+      console.error('No content in message');
+      console.error('Finish reason:', choice.finish_reason);
       
       // Handle specific finish reasons
-      if (candidate.finishReason === 'MAX_TOKENS') {
+      if (choice.finish_reason === 'length') {
         throw new Error('Response was truncated due to token limit. Please try a shorter prompt or increase maxTokens.');
-      } else if (candidate.finishReason === 'SAFETY') {
-        throw new Error('Response blocked by safety filters. Please rephrase your request.');
-      } else if (candidate.finishReason === 'RECITATION') {
-        throw new Error('Response blocked due to recitation concerns. Please rephrase your request.');
+      } else if (choice.finish_reason === 'content_filter') {
+        throw new Error('Response blocked by content filter. Please rephrase your request.');
       }
       
-      throw new Error(`No response generated from Gemini API - no text. Finish reason: ${candidate.finishReason}`);
+      throw new Error(`No response generated from OpenAI API - no content. Finish reason: ${choice.finish_reason}`);
     }
 
     return text;
   }
 
   async chat(
-    messages: GeminiMessage[],
-    model: string = 'gemini-2.5-flash', // Default to Gemini 2.5 Flash
+    messages: OpenAIMessage[],
+    model: string = 'gpt-4o', // Default to GPT-4o for best reasoning
     options?: {
       temperature?: number;
       maxTokens?: number;
     }
   ): Promise<string> {
-    const request: GeminiRequest = {
-      contents: messages,
-      generationConfig: {
-        temperature: options?.temperature ?? 0.7,
-        maxOutputTokens: options?.maxTokens ?? 2048,
-        topP: 0.8,
-        topK: 40,
-      },
+    const request: OpenAIRequest = {
+      model: model,
+      messages: messages,
+      temperature: options?.temperature ?? 0.7,
+      max_tokens: options?.maxTokens ?? 2048,
+      top_p: 0.9,
     };
 
     const response = await this.generateContent(model, request);
 
     if (
-      !response.candidates ||
-      response.candidates.length === 0 ||
-      !response.candidates[0].content ||
-      !response.candidates[0].content.parts ||
-      response.candidates[0].content.parts.length === 0 ||
-      !response.candidates[0].content.parts[0].text
+      !response.choices ||
+      response.choices.length === 0 ||
+      !response.choices[0].message ||
+      !response.choices[0].message.content
     ) {
-      throw new Error('No response generated from Gemini API');
+      throw new Error('No response generated from OpenAI API');
     }
 
-    return response.candidates[0].content.parts[0].text;
+    return response.choices[0].message.content;
   }
 }
 
 // Singleton instance
-let geminiInstance: GeminiAPI | null = null;
+let openaiInstance: OpenAIClient | null = null;
 
-export const getGeminiClient = (): GeminiAPI => {
-  if (!geminiInstance) {
-    const apiKey = process.env.GOOGLE_API_KEY; // Changed to use GOOGLE_API_KEY
+export const getOpenAIClient = (): OpenAIClient => {
+  if (!openaiInstance) {
+    const apiKey = process.env.OPENAI_API_KEY;
     if (!apiKey) {
-      throw new Error('GOOGLE_API_KEY environment variable is not set');
+      throw new Error('OPENAI_API_KEY environment variable is not set');
     }
-    geminiInstance = new GeminiAPI(apiKey);
+    openaiInstance = new OpenAIClient(apiKey);
   }
-  return geminiInstance;
+  return openaiInstance;
 };
 
 // Utility function for simple text generation
@@ -217,8 +191,8 @@ export const generateText = async (
     model?: string;
   }
 ): Promise<string> => {
-  const client = getGeminiClient();
-  return client.generateText(prompt, options?.model || 'gemini-2.5-flash', {
+  const client = getOpenAIClient();
+  return client.generateText(prompt, options?.model || 'gpt-4o', {
     temperature: options?.temperature,
     maxTokens: options?.maxTokens,
   });
@@ -226,15 +200,15 @@ export const generateText = async (
 
 // Utility function for chat conversations
 export const chat = async (
-  messages: GeminiMessage[],
+  messages: OpenAIMessage[],
   options?: {
     temperature?: number;
     maxTokens?: number;
     model?: string;
   }
 ): Promise<string> => {
-  const client = getGeminiClient();
-  return client.chat(messages, options?.model || 'gemini-2.5-flash', {
+  const client = getOpenAIClient();
+  return client.chat(messages, options?.model || 'gpt-4o', {
     temperature: options?.temperature,
     maxTokens: options?.maxTokens,
   });

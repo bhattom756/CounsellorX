@@ -1,0 +1,16 @@
+{
+  "name": "gemini-api-test",
+  "version": "1.0.0",
+  "description": "Test script for Google Gemini API",
+  "main": "test-gemini.js",
+  "scripts": {
+    "test": "node test-gemini.js",
+    "test:env": "GOOGLE_API_KEY=your_key_here node test-gemini.js"
+  },
+  "dependencies": {
+    "node-fetch": "^2.6.7"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}

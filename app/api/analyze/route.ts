@@ -27,7 +27,7 @@ Keep it conversational and supportive.`;
     const draftedStatement = await generateText(prompt, {
       temperature: 0.7,
       maxTokens: 1000,
-      model: 'gemini-2.5-flash'
+      model: 'gpt-4o'
     });
 
     // Generate document requirements based on who is filing
@@ -52,7 +52,7 @@ Be specific to this case and include documents that would help the defendant def
     const documentRequirements = await generateText(documentPrompt, {
       temperature: 0.7,
       maxTokens: 1200,
-      model: 'gemini-2.5-flash'
+      model: 'gpt-4o'
     });
 
     return NextResponse.json({
@@ -64,7 +64,7 @@ Be specific to this case and include documents that would help the defendant def
       winProbability: 0.5,
     });
   } catch (error) {
-    console.error('Gemini API error:', error);
+    console.error('OpenAI API error:', error);
     
     // Provide fallback responses based on case type
     let fallbackStatement = 'I understand your concern. Let me help you with your legal situation.';
