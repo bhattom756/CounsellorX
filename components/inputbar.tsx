@@ -115,6 +115,7 @@ const InputBar = () => {
   const [isTranscribing, setIsTranscribing] = useState(false);
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
   const [audioChunks, setAudioChunks] = useState<Blob[]>([]);
+  const [aiDocumentRequirements, setAiDocumentRequirements] = useState<string>("");
 
   const handleSend = async () => {
     const text = message.trim();
@@ -123,12 +124,67 @@ const InputBar = () => {
     setMessages((prev) => [...prev, { role: "user", content: text }]);
     setMessage("");
 
+    // Check for divorce keywords in first message
     if (messages.length === 0) {
-      setShowCaseOptions(true);
-      setMessages((prev) => [
-        ...prev,
-        { role: "assistant", content: "Please select from a case:" },
-      ]);
+      const divorceKeywords = ['divorce', 'divorcing', 'divorced', 'marriage', 'wife', 'husband', 'spouse', 'cheating', 'infidelity', 'adultery'];
+      const hasDivorceKeywords = divorceKeywords.some(keyword => 
+        text.toLowerCase().includes(keyword)
+      );
+
+      if (hasDivorceKeywords) {
+        // Auto-detect divorce case and generate empathetic response
+        setSelectedCase("Divorce");
+        setShowCaseOptions(false);
+        setLoading(true);
+        
+        try {
+          // Generate empathetic response based on user's specific situation
+          const empathyPrompt = `The user said: "${text}"
+
+Generate a brief, empathetic response (2-3 sentences) that:
+1. Acknowledges their specific situation with appropriate empathy
+2. Shows understanding of their pain/difficulty
+3. Transitions to asking about Civil vs Criminal nature of their case
+
+Be warm, supportive, and professional. Keep it concise.`;
+
+          const empatheticResponse = await analyzeCase({
+            statement: empathyPrompt,
+            caseType: "divorce",
+            documents: [],
+            lang: "en"
+          });
+
+          setMessages((prev) => [
+            ...prev,
+            { 
+              role: "assistant", 
+              content: `${empatheticResponse.draftedStatement}\n\nPlease select whether this is a Civil or Criminal matter:` 
+            },
+          ]);
+        } catch (error) {
+          // Fallback to generic response if AI fails
+          setMessages((prev) => [
+            ...prev,
+            { 
+              role: "assistant", 
+              content: "I understand you're going through a difficult time with your marriage. I'm here to help you navigate this legal process.\n\nPlease select whether this is a Civil or Criminal matter:" 
+            },
+          ]);
+        } finally {
+          setLoading(false);
+          setShowNatureOptions(true);
+        }
+        return;
+      } else {
+        // Show case options for other cases
+        setShowCaseOptions(true);
+        setMessages((prev) => [
+          ...prev,
+          { role: "assistant", content: "Please select from a case:" },
+        ]);
+        return;
+      }
     } else if (selectedCase && !showNatureOptions && messages.length <= 2) {
       setShowNatureOptions(true);
       setMessages((prev) => [
@@ -184,6 +240,11 @@ const InputBar = () => {
           },
         ]);
 
+        // Store AI-generated document requirements
+        if (response.documentRequirements) {
+          setAiDocumentRequirements(response.documentRequirements);
+        }
+
         // Show document requirements after AI response
         setTimeout(() => {
           setShowDocumentRequirements(true);
@@ -221,7 +282,7 @@ const InputBar = () => {
       { role: "user", content: nature },
       {
         role: "assistant",
-        content: `Tell me about your case. You can send a voice recording or type it in here.`,
+        content: `Thank you for selecting ${nature}. Now, please tell me more about your case in detail. Share as much information as you can about what happened, when it occurred, and any relevant circumstances. This will help me determine the specific set of documents you'll need to prepare for court.\n\nYou can type your response or use the microphone to record your statement.`,
       },
     ]);
   };
@@ -435,29 +496,15 @@ const InputBar = () => {
             {showDocumentRequirements && (
               <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
                 <h4 className="font-semibold text-blue-800 mb-2">
-                  Required Documents for {selectedCase} Case:
+                  Document Requirements for Your Case:
                 </h4>
                 <div className="text-sm text-blue-700 mb-3">
-                  {selectedCase.toLowerCase().includes("divorce") ? (
-                    <ul className="list-disc pl-5 space-y-1">
-                      <li>Marriage certificate</li>
-                      <li>
-                        Financial statements (bank statements, tax returns)
-                      </li>
-                      <li>Property deeds and ownership documents</li>
-                      <li>Employment records and income proof</li>
-                      <li>Any prenuptial or postnuptial agreements</li>
-                      <li>Communication records (emails, texts) if relevant</li>
-                    </ul>
+                  {aiDocumentRequirements ? (
+                    <div className="whitespace-pre-wrap">
+                      {aiDocumentRequirements}
+                    </div>
                   ) : (
-                    <ul className="list-disc pl-5 space-y-1">
-                      <li>Rental agreement or loan contract</li>
-                      <li>Payment records and receipts</li>
-                      <li>Property ownership documents</li>
-                      <li>Communication records with landlord/lender</li>
-                      <li>Photos of property condition (if applicable)</li>
-                      <li>Bank statements showing payments</li>
-                    </ul>
+                    <div>Loading document requirements...</div>
                   )}
                 </div>
                 <div className="flex gap-2">
@@ -573,9 +620,9 @@ const InputBar = () => {
 
         {/* Original input bar component - DO NOT TOUCH */}
         <div className="main-container p-4">
-          <Input
+          <textarea
             placeholder="Message CouncellorX"
-            className="bg-transparent border-0  text-gray-900 placeholder:text-gray-700 h-12"
+            className="w-full bg-transparent border-0 text-gray-900 placeholder:text-gray-700 min-h-[48px] max-h-32 resize-none rounded-md px-3 py-2 text-base outline-none"
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             onKeyDown={(e) => {
@@ -583,6 +630,17 @@ const InputBar = () => {
                 e.preventDefault();
                 handleSend();
               }
+            }}
+            rows={1}
+            style={{
+              height: 'auto',
+              minHeight: '48px',
+              maxHeight: '128px'
+            }}
+            onInput={(e) => {
+              const target = e.target as HTMLTextAreaElement;
+              target.style.height = 'auto';
+              target.style.height = Math.min(target.scrollHeight, 128) + 'px';
             }}
           />
           <div className="flex gap-2.5 mt-12">

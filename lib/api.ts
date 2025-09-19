@@ -101,7 +101,7 @@ export class GeminiAPI {
       ],
       generationConfig: {
         temperature: options?.temperature ?? 0.7,
-        maxOutputTokens: options?.maxTokens ?? 1024,
+        maxOutputTokens: options?.maxTokens ?? 2048,
         topP: 0.8,
         topK: 40,
       },
@@ -109,18 +109,54 @@ export class GeminiAPI {
 
     const response = await this.generateContent(model, request);
 
+    // Debug logging
+    console.log('Gemini API Response:', JSON.stringify(response, null, 2));
+
     if (
       !response.candidates ||
-      response.candidates.length === 0 ||
-      !response.candidates[0].content ||
-      !response.candidates[0].content.parts ||
-      response.candidates[0].content.parts.length === 0 ||
-      !response.candidates[0].content.parts[0].text
+      response.candidates.length === 0
     ) {
-      throw new Error('No response generated from Gemini API');
+      console.error('No candidates in response');
+      throw new Error('No response generated from Gemini API - no candidates');
     }
 
-    return response.candidates[0].content.parts[0].text;
+    const candidate = response.candidates[0];
+    
+    if (!candidate.content) {
+      console.error('No content in candidate');
+      throw new Error('No response generated from Gemini API - no content');
+    }
+
+    if (!candidate.content.parts || candidate.content.parts.length === 0) {
+      console.error('No parts in content');
+      console.error('Finish reason:', candidate.finishReason);
+      
+      // Handle MAX_TOKENS case where content exists but no parts
+      if (candidate.finishReason === 'MAX_TOKENS') {
+        throw new Error('Response was truncated due to token limit. Please try a shorter prompt or increase maxTokens.');
+      }
+      
+      throw new Error('No response generated from Gemini API - no parts');
+    }
+
+    const text = candidate.content.parts[0].text;
+    if (!text) {
+      console.error('No text in parts');
+      console.error('Finish reason:', candidate.finishReason);
+      
+      // Handle specific finish reasons
+      if (candidate.finishReason === 'MAX_TOKENS') {
+        throw new Error('Response was truncated due to token limit. Please try a shorter prompt or increase maxTokens.');
+      } else if (candidate.finishReason === 'SAFETY') {
+        throw new Error('Response blocked by safety filters. Please rephrase your request.');
+      } else if (candidate.finishReason === 'RECITATION') {
+        throw new Error('Response blocked due to recitation concerns. Please rephrase your request.');
+      }
+      
+      throw new Error(`No response generated from Gemini API - no text. Finish reason: ${candidate.finishReason}`);
+    }
+
+    return text;
   }
 
   async chat(
@@ -135,7 +171,7 @@ export class GeminiAPI {
       contents: messages,
       generationConfig: {
         temperature: options?.temperature ?? 0.7,
-        maxOutputTokens: options?.maxTokens ?? 1024,
+        maxOutputTokens: options?.maxTokens ?? 2048,
         topP: 0.8,
         topK: 40,
       },

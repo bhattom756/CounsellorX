@@ -39,3 +39,6 @@ tqdm
 fastapi
 uvicorn[standard]
 python-multipart
+
+Tensorflow
+
