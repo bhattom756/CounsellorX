@@ -12,14 +12,15 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 });
     }
 
-    const transcription = await openai.audio.transcriptions.create({
+    // Use translations endpoint to force English output regardless of input language
+    const translation = await openai.audio.translations.create({
       file,
       model: "whisper-1",
       response_format: "text",
     });
 
     // When response_format is "text", the SDK returns a plain string
-    return NextResponse.json({ text: transcription });
+    return NextResponse.json({ text: translation });
   } catch (err: any) {
     console.error("Transcribe route error:", err);
     return NextResponse.json(

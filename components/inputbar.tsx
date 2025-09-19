@@ -275,10 +275,9 @@ const InputBar = () => {
         // Transcribe the audio
         const transcribedText = await transcribeAudio(audioBlob);
         if (transcribedText) {
-          // Add as a user message automatically
-          setMessages((prev) => [...prev, { role: "user", content: transcribedText }]);
-          setMessage("");
-          toast.success("Audio transcribed successfully!");
+          // Put into input field for user to review/edit
+          setMessage(transcribedText);
+          toast.success("Audio transcribed to English. You can edit before sending.");
         }
         
         // Reset states
