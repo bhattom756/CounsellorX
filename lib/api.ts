@@ -224,6 +224,37 @@ export async function uploadDocumentMetas(files: Array<{ name: string; size: num
   return response.json();
 }
 
+// Shared schemas for new document flow
+export type ParsedDoc = {
+  id: string;
+  name: string;
+  pages?: number;
+  entities?: Array<{ type: string; text: string }>;
+  summary: string;
+};
+
+export type AnalysisInput = {
+  chatId: string;
+  caseType: 'divorce' | 'property';
+  statement: string;
+  documents: ParsedDoc[];
+};
+
+export type AnalysisResult = {
+  admissibility: { status: 'admissible' | 'inadmissible' | 'partial'; reasons: string[] };
+  winProbability: number; // 0-1
+  missingDocuments: string[];
+  suggestions: string[];
+  mockTrial?: {
+    judge: string[];
+    plaintiffLawyer: string[];
+    defenseLawyer: string[];
+    jury: string[];
+    verdict: string;
+    judgeSummary: string;
+  };
+};
+
 export async function analyzeCase(payload: {
   statement: string;
   caseType: string;

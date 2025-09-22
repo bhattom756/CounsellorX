@@ -117,6 +117,9 @@ const InputBar = () => {
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
   const [audioChunks, setAudioChunks] = useState<Blob[]>([]);
   const [aiDocumentRequirements, setAiDocumentRequirements] = useState<string>("");
+  const [parsedDocs, setParsedDocs] = useState<any[]>([]);
+  const [analysis, setAnalysis] = useState<any | null>(null);
+  const [showMock, setShowMock] = useState(false);
 
   const handleSend = async () => {
     const text = message.trim();
@@ -283,6 +286,26 @@ Be warm, supportive, and professional. Keep it concise.`;
     }
   };
 
+  // New: upload document via Next.js proxy → FastAPI summarizer
+  const handleUploadViaProxy = async (file: File) => {
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      fd.append('chatId', localStorage.getItem('currentChatId') || '');
+      fd.append('caseType', (selectedCase || 'divorce').toLowerCase());
+      const idToken = await (await import('firebase/auth')).getIdToken?.(null as any).catch(() => '');
+      const resp = await fetch('/api/upload-document', { method: 'POST', body: fd, headers: { 'Authorization': idToken ? `Bearer ${idToken}` : '' } as any });
+      if (!resp.ok) throw new Error('Upload failed');
+      const data = await resp.json();
+      toast.success(`Parsed ${file.name}`);
+      return data.document;
+    } catch (e) {
+      console.error(e);
+      toast.error('Document upload failed');
+      return null;
+    }
+  };
+
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -355,23 +378,14 @@ Be warm, supportive, and professional. Keep it concise.`;
 
     try {
       const uploadPromises = files.map(async (file) => {
-        // Send to Python FastAPI for processing
-        const formData = new FormData();
-        formData.append("file", file);
-
-        const response = await fetch("http://localhost:8000/process", {
-          method: "POST",
-          body: formData,
-        });
-
-        if (!response.ok) throw new Error("Upload failed");
-
-        const result = await response.json();
-        return { name: file.name, summary: result.data, file };
+        const parsed = await handleUploadViaProxy(file);
+        if (!parsed) throw new Error('Upload failed');
+        return { name: file.name, parsed, file } as any;
       });
 
       const results = await Promise.all(uploadPromises);
       setUploadedDocuments((prev) => [...prev, ...results]);
+      setParsedDocs((prev) => [...prev, ...results.map(r => ({ filename: r.name, parsed: r.parsed }))]);
 
       toast.success(`Successfully uploaded ${files.length} document(s)!`, {
         id: "upload",
@@ -381,6 +395,40 @@ Be warm, supportive, and professional. Keep it concise.`;
       toast.error("Failed to upload documents. Please try again.", {
         id: "upload",
       });
+    }
+  };
+
+  const runAnalysis = async () => {
+    try {
+      const body = {
+        chatId: localStorage.getItem('currentChatId') || '',
+        caseType: (selectedCase || 'divorce').toLowerCase(),
+        statement: message || (messages.find(m=>m.role==='user')?.content || ''),
+        documents: parsedDocs,
+      };
+      const resp = await fetch('/api/analyze-case', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      const json = await resp.json();
+      setAnalysis(json);
+      toast.success('Analysis ready');
+    } catch (e) {
+      toast.error('Analysis failed');
+    }
+  };
+
+  const runMockTrial = async () => {
+    try {
+      const body = {
+        caseType: (selectedCase || 'divorce').toLowerCase(),
+        statement: message || (messages.find(m=>m.role==='user')?.content || ''),
+        documents: parsedDocs,
+      };
+      const resp = await fetch('/api/mock-trial', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      const json = await resp.json();
+      setAnalysis((a:any)=> ({ ...(a||{}), mockTrial: json.mockTrial }));
+      setShowMock(true);
+      toast.success('Mock trial ready');
+    } catch (e) {
+      toast.error('Mock trial failed');
     }
   };
 
