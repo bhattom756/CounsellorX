@@ -22,7 +22,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${montserrat.className} antialiased min-h-screen bg-[#e6eef7] relative`}>
+      <body className={`${montserrat.className} antialiased h-screen overflow-hidden bg-[#e6eef7] relative`}>
         <div className="fixed inset-0 -z-10 bg-[url('/bg.jpg')] bg-center bg-cover bg-fixed" />
         <div className="fixed inset-0 -z-10 bg-black/10" />
         <UserProvider>
