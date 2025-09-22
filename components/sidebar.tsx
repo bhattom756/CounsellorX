@@ -21,11 +21,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { RxAvatar } from "react-icons/rx";
+import { MdDeleteOutline } from "react-icons/md";
 import { useChat, formatRelativeTime } from "@/context/ChatContext";
 import toast from "react-hot-toast";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useUser } from "@/context/UserContext";
 import { LogOut, HelpCircle, Settings as SettingsIcon, Wand2, Sparkles, ChevronRight, Bell, Plug, Database, Shield, User as UserIcon, ChevronDown, Play } from "lucide-react";
 import { DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger } from "@/components/ui/dropdown-menu";
@@ -33,6 +34,7 @@ import { useRouter } from "next/navigation";
 import { auth, db } from "@/lib/firebase";
 import { doc, updateDoc } from "firebase/firestore";
 import { EmailAuthProvider, reauthenticateWithCredential, updatePassword } from "firebase/auth";
+import { collection, getDocs, deleteDoc } from "firebase/firestore";
 
 const Sdebar = () => {
   const { sessions, newSession, loadSession, currentSessionId } = useChat();
@@ -54,6 +56,8 @@ const Sdebar = () => {
   const [isChangingPwd, setIsChangingPwd] = React.useState(false);
   const [editUsername, setEditUsername] = React.useState<string>("");
   const [isSavingUsername, setIsSavingUsername] = React.useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
+  const [sessionToDelete, setSessionToDelete] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     setEditUsername(user?.displayName || "");
@@ -162,10 +166,20 @@ const Sdebar = () => {
                     <MenuItem className="text-gray-500">No chats yet</MenuItem>
                   )}
                   {sessions.map((s, i) => (
-                    <MenuItem key={s.id} onClick={() => { loadSession(s.id); }} className={currentSessionId === s.id ? "font-semibold" : ""}>
-                      <div>
-                        {i + 1}. {s.title}
-                        <div className="text-xs text-gray-500">{formatRelativeTime(s.updatedAt || s.createdAt)}</div>
+                    <MenuItem key={s.id} className={currentSessionId === s.id ? "font-semibold" : ""}>
+                      <div className="w-full flex items-center justify-between gap-2" onClick={() => { loadSession(s.id); }}>
+                        <div>
+                          {i + 1}. {s.title}
+                          <div className="text-xs text-gray-500">{formatRelativeTime(s.updatedAt || s.createdAt)}</div>
+                        </div>
+                        <button
+                          className="p-1 rounded hover:bg-red-50"
+                          onClick={(e) => { e.stopPropagation(); setSessionToDelete(s.id); setDeleteDialogOpen(true); }}
+                          aria-label="Delete chat"
+                          title="Delete chat"
+                        >
+                          <MdDeleteOutline size={18} className="text-red-600" />
+                        </button>
                       </div>
                     </MenuItem>
                   ))}
@@ -242,6 +256,7 @@ const Sdebar = () => {
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
+        
           {collapsed && (
             <TooltipProvider delayDuration={100}>
               <Tooltip>
@@ -266,6 +281,27 @@ const Sdebar = () => {
             </TooltipProvider>
           )}
         </div>
+        <div className="main-container flex items-center justify-center">  <TooltipProvider delayDuration={100}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  className="inline-flex items-center justify-center w-20 h-9 rounded-full bg-transparent transition-colors duration-150 hover:bg-blue-100 active:scale-95"
+                  aria-label="Lawyers Page"
+                  onClick={() => router.push("/lawyers")}
+                >
+                  Lawyers
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent
+                className="tooltip-no-arrow border border-white/10 rounded-full bg-gray-700 text-white px-3 py-1 text-[10px] mt-1 shadow-lg"
+                side="bottom"
+                align="center"
+              >
+                {collapsed ? "Lawyers Page" : "Lawyers Page"}
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider></div>
       </main>
 
       {/* Account Dialog with Tabs */}
@@ -273,6 +309,7 @@ const Sdebar = () => {
         <DialogContent className="sm:max-w-3xl md:max-w-5xl bg-white/50 backdrop-blur-lg border border-white/30 shadow-2xl">
           <DialogHeader>
             <DialogTitle className="text-lg">My Account</DialogTitle>
+            <DialogDescription>Manage your plan, personalization, settings and help.</DialogDescription>
           </DialogHeader>
           <Tabs value={activeAccountTab} onValueChange={(v:any) => setActiveAccountTab(v)} className="w-full">
             {activeAccountTab !== "settings" && (
@@ -466,9 +503,9 @@ const Sdebar = () => {
                         </div>
                     </div>
                     )}
+                    </div>
                   </div>
                 </div>
-              </div>
             </TabsContent>
 
             <TabsContent value="help" className="mt-1 transition-opacity duration-150 data-[state=inactive]:opacity-0 data-[state=active]:opacity-100">
@@ -522,6 +559,36 @@ const Sdebar = () => {
               <div className="rounded-xl border border-white/40 bg-white/60 backdrop-blur-md p-4 text-sm text-gray-800">Subscription plan info goes here.</div>
             </TabsContent>
           </Tabs>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent className="main-container z-[1000] fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[30rem] max-w-[90vw]">
+          <DialogHeader>
+            <DialogTitle className="text-lg">Delete chat?</DialogTitle>
+            <DialogDescription>Are you sure you want to delete this chat? This action cannot be undone.</DialogDescription>
+          </DialogHeader>
+          <div className="mt-4 flex items-center justify-between gap-3">
+            <Button variant="outline" className="bg-white" onClick={() => setDeleteDialogOpen(false)}>No</Button>
+            <Button className="bg-red-600 text-white hover:bg-red-700" onClick={async()=>{
+              if (!sessionToDelete || !auth.currentUser) { setDeleteDialogOpen(false); return; }
+              try {
+                toast.loading("Deleting chat...", { id: "del" });
+                const uid = auth.currentUser.uid;
+                const msgsCol = collection(db, 'users', uid, 'sessions', sessionToDelete, 'messages');
+                const msgsSnap = await getDocs(msgsCol);
+                await Promise.all(msgsSnap.docs.map(d => deleteDoc(d.ref)));
+                await deleteDoc(doc(db, 'users', uid, 'sessions', sessionToDelete));
+                toast.success("Chat deleted", { id: 'del' });
+                setDeleteDialogOpen(false);
+                setSessionToDelete(null);
+                await newSession();
+              } catch (e:any) {
+                console.error(e);
+                toast.error(e?.message || 'Failed to delete chat', { id: 'del' });
+              }
+            }}>Delete</Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
