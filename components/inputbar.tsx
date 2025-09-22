@@ -12,6 +12,7 @@ import {
   TooltipProvider,
 } from "@/components/ui/tooltip";
 import React, { useRef, useState } from "react";
+import { useChat } from "@/context/ChatContext";
 import { uploadFileToStorage, uploadFileWithProgress } from "@/lib/firebase";
 import { analyzeCase } from "@/lib/api";
 import toast, { Toaster } from "react-hot-toast";
@@ -100,7 +101,7 @@ type ChatMessage = { role: "user" | "assistant"; content: string };
 
 const InputBar = () => {
   const [message, setMessage] = useState("");
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const { messages, appendMessage, currentSessionId, newSession } = useChat();
   const [showCaseOptions, setShowCaseOptions] = useState(false);
   const [showNatureOptions, setShowNatureOptions] = useState(false);
   const [selectedCase, setSelectedCase] = useState<string>("");
@@ -120,8 +121,10 @@ const InputBar = () => {
   const handleSend = async () => {
     const text = message.trim();
     if (!text) return;
-
-    setMessages((prev) => [...prev, { role: "user", content: text }]);
+    if (!currentSessionId) {
+      await newSession();
+    }
+    await appendMessage({ role: "user", content: text });
     setMessage("");
 
     // Check for divorce keywords in first message
@@ -155,22 +158,16 @@ Be warm, supportive, and professional. Keep it concise.`;
             lang: "en"
           });
 
-          setMessages((prev) => [
-            ...prev,
-            { 
-              role: "assistant", 
-              content: `${empatheticResponse.draftedStatement}\n\nPlease select whether this is a Civil or Criminal matter:` 
-            },
-          ]);
+        await appendMessage({ 
+          role: "assistant", 
+          content: `${empatheticResponse.draftedStatement}\n\nPlease select whether this is a Civil or Criminal matter:` 
+        });
         } catch (error) {
           // Fallback to generic response if AI fails
-          setMessages((prev) => [
-            ...prev,
-            { 
-              role: "assistant", 
-              content: "I understand you're going through a difficult time with your marriage. I'm here to help you navigate this legal process.\n\nPlease select whether this is a Civil or Criminal matter:" 
-            },
-          ]);
+        await appendMessage({ 
+          role: "assistant", 
+          content: "I understand you're going through a difficult time with your marriage. I'm here to help you navigate this legal process.\n\nPlease select whether this is a Civil or Criminal matter:" 
+        });
         } finally {
           setLoading(false);
           setShowNatureOptions(true);
@@ -179,18 +176,12 @@ Be warm, supportive, and professional. Keep it concise.`;
       } else {
         // Show case options for other cases
         setShowCaseOptions(true);
-        setMessages((prev) => [
-          ...prev,
-          { role: "assistant", content: "Please select from a case:" },
-        ]);
+        await appendMessage({ role: "assistant", content: "Please select from a case:" });
         return;
       }
     } else if (selectedCase && !showNatureOptions && messages.length <= 2) {
       setShowNatureOptions(true);
-      setMessages((prev) => [
-        ...prev,
-        { role: "assistant", content: "Now choose Civil or Criminal:" },
-      ]);
+      await appendMessage({ role: "assistant", content: "Now choose Civil or Criminal:" });
     } else if (selectedCase && showNatureOptions) {
       // Gemini API for case analysis
       setLoading(true);
@@ -201,22 +192,16 @@ Be warm, supportive, and professional. Keep it concise.`;
           documents: [],
           lang: "en",
         });
-        setMessages((prev) => [
-          ...prev,
-          {
-            role: "assistant",
-            content: `Tell me about your case. You can send a voice recording or type it in here. I'll analyze your ${selectedCase} case and provide guidance.`,
-          },
-        ]);
+        await appendMessage({
+          role: "assistant",
+          content: `Tell me about your case. You can send a voice recording or type it in here. I'll analyze your ${selectedCase} case and provide guidance.`,
+        });
       } catch (error) {
-        setMessages((prev) => [
-          ...prev,
-          {
-            role: "assistant",
-            content:
-              "Tell me about your case. You can send a voice recording or type it in here.",
-          },
-        ]);
+        await appendMessage({
+          role: "assistant",
+          content:
+            "Tell me about your case. You can send a voice recording or type it in here.",
+        });
       } finally {
         setLoading(false);
       }
@@ -230,15 +215,12 @@ Be warm, supportive, and professional. Keep it concise.`;
           documents: [],
           lang: "en",
         });
-        setMessages((prev) => [
-          ...prev,
-          {
-            role: "assistant",
-            content:
-              response.draftedStatement ||
-              "I understand your concern. Let me help you with your legal case.",
-          },
-        ]);
+        await appendMessage({
+          role: "assistant",
+          content:
+            response.draftedStatement ||
+            "I understand your concern. Let me help you with your legal case.",
+        });
 
         // Store AI-generated document requirements
         if (response.documentRequirements) {
@@ -250,14 +232,11 @@ Be warm, supportive, and professional. Keep it concise.`;
           setShowDocumentRequirements(true);
         }, 1000);
       } catch (error) {
-        setMessages((prev) => [
-          ...prev,
-          {
-            role: "assistant",
-            content:
-              "I understand your concern. Let me help you with your legal case.",
-          },
-        ]);
+        await appendMessage({
+          role: "assistant",
+          content:
+            "I understand your concern. Let me help you with your legal case.",
+        });
       } finally {
         setLoading(false);
       }
@@ -268,23 +247,17 @@ Be warm, supportive, and professional. Keep it concise.`;
     setSelectedCase(caseType);
     setShowCaseOptions(false);
     setShowNatureOptions(true);
-    setMessages((prev) => [
-      ...prev,
-      { role: "user", content: caseType },
-      { role: "assistant", content: "Now choose Civil or Criminal:" },
-    ]);
+    appendMessage({ role: "user", content: caseType });
+    appendMessage({ role: "assistant", content: "Now choose Civil or Criminal:" });
   };
 
   const handleNatureSelect = (nature: string) => {
     setShowNatureOptions(false);
-    setMessages((prev) => [
-      ...prev,
-      { role: "user", content: nature },
-      {
-        role: "assistant",
-        content: `Thank you for selecting ${nature}. Now, please tell me more about your case in detail. Share as much information as you can about what happened, when it occurred, and any relevant circumstances. This will help me determine the specific set of documents you'll need to prepare for court.\n\nYou can type your response or use the microphone to record your statement.`,
-      },
-    ]);
+    appendMessage({ role: "user", content: nature });
+    appendMessage({
+      role: "assistant",
+      content: `Thank you for selecting ${nature}. Now, please tell me more about your case in detail. Share as much information as you can about what happened, when it occurred, and any relevant circumstances. This will help me determine the specific set of documents you'll need to prepare for court.\n\nYou can type your response or use the microphone to record your statement.`,
+    });
   };
 
   const transcribeAudio = async (audioBlob: Blob) => {

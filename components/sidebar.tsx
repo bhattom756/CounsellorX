@@ -21,6 +21,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { RxAvatar } from "react-icons/rx";
+import { useChat, formatRelativeTime } from "@/context/ChatContext";
+import toast from "react-hot-toast";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -29,6 +31,7 @@ import { LogOut, HelpCircle, Settings as SettingsIcon, Wand2, Sparkles, ChevronR
 import { DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger } from "@/components/ui/dropdown-menu";
 
 const Sdebar = () => {
+  const { sessions, newSession, loadSession, currentSessionId } = useChat();
   const [collapsed, setCollapsed] = React.useState(true);
   const [accountOpen, setAccountOpen] = React.useState(false);
   const [activeAccountTab, setActiveAccountTab] = React.useState<"profile" | "password" | "billing" | "team" | "subscription" | "settings">("profile");
@@ -75,25 +78,36 @@ const Sdebar = () => {
             <Menu>
               {!collapsed && (
                 <div className="flex justify-center mt-5">
-                  <Button className="w-[12rem] text-md bg-white border-1 border-white rounded-xl">
+                  <Button className="w-[12rem] text-md bg-white border-1 border-white rounded-xl transition-colors duration-150 hover:bg-blue-50 hover:border-blue-200 active:scale-95" onClick={async () => {
+                    const id = await newSession();
+                    if (id) {
+                      toast.success("Started new chat");
+                    }
+                  }}>
                     <CircleFadingPlus size={20} /> New Chat
                   </Button>
                 </div>
               )}
               {!collapsed && (
-                <MenuItem className="flex justify-center"></MenuItem>
-              )}
-              {!collapsed && (
-                <>
+                <div className="mt-8">
                   <Label
                     htmlFor="chat"
                     className="text-md font-medium mx-[18px]  "
                   >
                     Chat History
                   </Label>
-                  <MenuItem>1. Searched for zyxzjjkhkhjkjhh</MenuItem>
-                  <MenuItem>2. Fix code bug for zyxzjjkhkhjkjhh</MenuItem>
-                </>
+                  {sessions.length === 0 && (
+                    <MenuItem className="text-gray-500">No chats yet</MenuItem>
+                  )}
+                  {sessions.map((s, i) => (
+                    <MenuItem key={s.id} onClick={() => { loadSession(s.id); }} className={currentSessionId === s.id ? "font-semibold" : ""}>
+                      <div>
+                        {i + 1}. {s.title}
+                        <div className="text-xs text-gray-500">{formatRelativeTime(s.updatedAt || s.createdAt)}</div>
+                      </div>
+                    </MenuItem>
+                  ))}
+                </div>
               )}
             </Menu>
             <div className="mt-auto p-3">
@@ -177,8 +191,9 @@ const Sdebar = () => {
                 <TooltipTrigger asChild>
                   <Button
                     variant="ghost"
-                    className="inline-flex items-center justify-center w-9 h-9 rounded-full bg-transparent transition-colors duration-150 hover:bg-blue-100 active:scale-95"
+                    className="inline-flex items-center justify-center w-9 h-9 rounded-full bg-transparent transition-all duration-150 hover:bg-blue-100 hover:scale-105 active:scale-95"
                     aria-label="New chat"
+                    onClick={async () => { const id = await newSession(); if (id) toast.success("Started new chat"); }}
                   >
                     <CircleFadingPlus size={18} />
                   </Button>

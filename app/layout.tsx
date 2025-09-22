@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Montserrat } from "next/font/google";
 import "./globals.css";
 import { UserProvider } from "@/context/UserContext";
+import { ChatProvider } from "@/context/ChatContext";
 import AuthDialogGate from "@/components/AuthDialogGate";
 
 const montserrat = Montserrat({
@@ -25,10 +26,12 @@ export default function RootLayout({
         <div className="fixed inset-0 -z-10 bg-[url('/bg.jpg')] bg-center bg-cover bg-fixed" />
         <div className="fixed inset-0 -z-10 bg-black/10" />
         <UserProvider>
-          <AuthDialogGate />
-          <div className="relative">
-            {children}
-          </div>
+          <ChatProvider>
+            <AuthDialogGate />
+            <div className="relative">
+              {children}
+            </div>
+          </ChatProvider>
         </UserProvider>
       </body>
     </html>
